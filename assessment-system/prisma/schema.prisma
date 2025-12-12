@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model PatientAssessment {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Patient Information
+  patientInfo       String   // JSON: firstName, lastName, email, phone, dob, address, gender
+  
+  // Medical History
+  medicalHistory    String   // JSON: conditions, surgeries, allergies, etc.
+  
+  // Medication History
+  medications       String   // JSON: current medications, supplements
+  
+  // Sexual Health
+  sexualHealth      String   // JSON: concerns, frequency, ED history, etc.
+  
+  // Contraindication Screening
+  contraindications String   // JSON: nitrates, BP, cardiac, etc.
+  
+  // PT-141 Specific Questions
+  pt141Section      String   // JSON: PT-141 specific screening
+  
+  // Oxytocin Specific Questions
+  oxytocinSection   String   // JSON: Oxytocin specific screening
+  
+  // Consent
+  consentSigned     Boolean  @default(false)
+  signatureData     String?  // Base64 signature image
+  consentTimestamp  DateTime?
+  
+  // Risk Assessment
+  riskFlags         String   // JSON array of risk flags
+  isAutoDisqualified Boolean @default(false)
+  requiresReview    Boolean  @default(true)
+  
+  // Status & Tracking
+  status            String   @default("pending") // pending, approved, denied, shipped
+  ipAddress         String?
+  userAgent         String?
+  
+  // Physician Decision
+  physicianId       String?
+  physician         Physician? @relation(fields: [physicianId], references: [id])
+  physicianNotes    String?
+  denialReason      String?
+  decisionTimestamp DateTime?
+  
+  // Fulfillment
+  shippedAt         DateTime?
+  trackingNumber    String?
+  
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Physician {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("physician") // physician, admin
+  isActive     Boolean  @default(true)
+  
+  // Audit
+  lastLoginAt  DateTime?
+  
+  assessments  PatientAssessment[]
+  auditLogs    AuditLog[]
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  action      String   // login, approve, deny, view, ship
+  entityType  String   // assessment, physician
+  entityId    String?
+  details     String?  // JSON additional details
+  ipAddress   String?
+  
+  physicianId String
+  physician   Physician @relation(fields: [physicianId], references: [id])
+  
+  @@index([physicianId])
+  @@index([createdAt])
+}
+
