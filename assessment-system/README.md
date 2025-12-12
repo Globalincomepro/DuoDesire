@@ -2,6 +2,25 @@
 
 A secure, multi-step medical assessment system for evaluating patient eligibility for DuoDesire medications (Tadalafil, PT-141, Oxytocin).
 
+## 🚀 Production Deployment (Vercel)
+
+### Quick Deploy
+1. Go to [vercel.com](https://vercel.com) and import this repository
+2. Set root directory to `assessment-system`
+3. Add environment variables (see below)
+4. Deploy!
+
+### Required Environment Variables
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | 64+ character random string |
+
+### Database Setup (Vercel Postgres)
+1. In Vercel dashboard, go to Storage → Create Database → Postgres
+2. Copy the `POSTGRES_URL` and set it as `DATABASE_URL`
+3. Run migrations: The build command will handle this automatically
+
 ## Features
 
 ### Patient Assessment Form

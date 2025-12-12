@@ -1,9 +1,10 @@
+// Production Prisma Schema for PostgreSQL
+// Copy this to schema.prisma when deploying to production
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// For local development: uses SQLite
-// For production: set DATABASE_URL env var to PostgreSQL connection string
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
