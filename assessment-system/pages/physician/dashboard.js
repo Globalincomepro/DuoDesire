@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function PhysicianDashboard() {
   const router = useRouter();
@@ -104,11 +105,11 @@ export default function PhysicianDashboard() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display">
+            <Link href="/" className="text-2xl font-display hover:opacity-80 transition-opacity inline-block">
               <span className="text-gray-900">Duo</span>
               <span className="text-primary-500">Desire</span>
               <span className="text-primary-500 text-sm">™</span>
-            </h1>
+            </Link>
             <p className="text-sm text-gray-500">Physician Dashboard</p>
           </div>
           

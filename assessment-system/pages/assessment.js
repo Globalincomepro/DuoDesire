@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 const STEPS = [
   { id: 1, name: 'Patient Info', description: 'Your basic information' },
@@ -52,10 +53,16 @@ export default function Assessment() {
     takesOtherMeds: false,
     otherMedDetails: '',
     
-    // Sexual Health
+    // Sexual Health - Male specific
     experiencesED: false,
     edFrequency: '',
     edDuration: '',
+    // Sexual Health - Female specific
+    arousalDifficulty: false,
+    vaginalDryness: false,
+    difficultyOrgasm: false,
+    painDuringIntercourse: false,
+    // Sexual Health - Shared
     lowDesire: false,
     desireFrequency: '',
     relationshipStatus: '',
@@ -225,9 +232,12 @@ export default function Assessment() {
             Thank you for completing the DuoDesire™ Couples Chemistry Assessment. 
             A licensed physician will review your submission and you'll be notified of the next steps.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mb-6">
             This typically takes 1-2 business days. Please check your email for updates.
           </p>
+          <Link href="/" className="btn btn-primary inline-block">
+            Return to Home
+          </Link>
         </div>
       </div>
     );
@@ -244,11 +254,11 @@ export default function Assessment() {
       <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-display">
+            <Link href="/" className="text-2xl font-display hover:opacity-80 transition-opacity">
               <span className="text-gray-900">Duo</span>
               <span className="text-primary-500">Desire</span>
               <span className="text-primary-500 text-sm">™</span>
-            </h1>
+            </Link>
             <span className="text-sm text-gray-500">Couples Chemistry Assessment</span>
           </div>
         </div>
@@ -412,8 +422,8 @@ export default function Assessment() {
                   { key: 'hasKidneyDisease', label: 'Kidney disease or impairment' },
                   { key: 'hasLiverDisease', label: 'Liver disease or impairment' },
                   { key: 'hasEyeDisorder', label: 'Eye disorder such as NAION (sudden vision loss)' },
-                  { key: 'hasPriapism', label: 'Priapism (prolonged, painful erection)' },
-                ].map(item => (
+                  { key: 'hasPriapism', label: 'Priapism (prolonged, painful erection)', maleOnly: true },
+                ].filter(item => !item.maleOnly || formData.gender === 'male').map(item => (
                   <label key={item.key} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                     <input
                       type="checkbox"
@@ -570,52 +580,109 @@ export default function Assessment() {
               <p className="text-gray-600 mb-8">Help us understand your intimate wellness needs.</p>
               
               <div className="space-y-6">
-                <div>
-                  <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
-                      checked={formData.experiencesED}
-                      onChange={(e) => updateFormData('experiencesED', e.target.checked)}
-                    />
-                    <span className="text-gray-700">I experience erectile dysfunction (difficulty achieving or maintaining erections)</span>
-                  </label>
-                  
-                  {formData.experiencesED && (
-                    <div className="mt-4 ml-8 space-y-4">
-                      <div>
-                        <label className="form-label">How often do you experience ED?</label>
-                        <select
-                          className="form-input"
-                          value={formData.edFrequency}
-                          onChange={(e) => updateFormData('edFrequency', e.target.value)}
-                        >
-                          <option value="">Select frequency</option>
-                          <option value="rarely">Rarely (less than 25% of the time)</option>
-                          <option value="sometimes">Sometimes (25-50% of the time)</option>
-                          <option value="often">Often (50-75% of the time)</option>
-                          <option value="always">Almost always (more than 75% of the time)</option>
-                        </select>
+                {/* Male-specific questions */}
+                {formData.gender === 'male' && (
+                  <div>
+                    <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                        checked={formData.experiencesED}
+                        onChange={(e) => updateFormData('experiencesED', e.target.checked)}
+                      />
+                      <span className="text-gray-700">I experience erectile dysfunction (difficulty achieving or maintaining erections)</span>
+                    </label>
+                    
+                    {formData.experiencesED && (
+                      <div className="mt-4 ml-8 space-y-4">
+                        <div>
+                          <label className="form-label">How often do you experience ED?</label>
+                          <select
+                            className="form-input"
+                            value={formData.edFrequency}
+                            onChange={(e) => updateFormData('edFrequency', e.target.value)}
+                          >
+                            <option value="">Select frequency</option>
+                            <option value="rarely">Rarely (less than 25% of the time)</option>
+                            <option value="sometimes">Sometimes (25-50% of the time)</option>
+                            <option value="often">Often (50-75% of the time)</option>
+                            <option value="always">Almost always (more than 75% of the time)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="form-label">How long have you experienced ED?</label>
+                          <select
+                            className="form-input"
+                            value={formData.edDuration}
+                            onChange={(e) => updateFormData('edDuration', e.target.value)}
+                          >
+                            <option value="">Select duration</option>
+                            <option value="less-3-months">Less than 3 months</option>
+                            <option value="3-6-months">3-6 months</option>
+                            <option value="6-12-months">6-12 months</option>
+                            <option value="1-3-years">1-3 years</option>
+                            <option value="more-3-years">More than 3 years</option>
+                          </select>
+                        </div>
                       </div>
-                      <div>
-                        <label className="form-label">How long have you experienced ED?</label>
-                        <select
-                          className="form-input"
-                          value={formData.edDuration}
-                          onChange={(e) => updateFormData('edDuration', e.target.value)}
-                        >
-                          <option value="">Select duration</option>
-                          <option value="less-3-months">Less than 3 months</option>
-                          <option value="3-6-months">3-6 months</option>
-                          <option value="6-12-months">6-12 months</option>
-                          <option value="1-3-years">1-3 years</option>
-                          <option value="more-3-years">More than 3 years</option>
-                        </select>
-                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Female-specific questions */}
+                {formData.gender === 'female' && (
+                  <>
+                    <div>
+                      <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.arousalDifficulty}
+                          onChange={(e) => updateFormData('arousalDifficulty', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I experience difficulty becoming aroused or maintaining arousal</span>
+                      </label>
                     </div>
-                  )}
-                </div>
+
+                    <div>
+                      <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.vaginalDryness}
+                          onChange={(e) => updateFormData('vaginalDryness', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I experience vaginal dryness or discomfort during intimacy</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.difficultyOrgasm}
+                          onChange={(e) => updateFormData('difficultyOrgasm', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I experience difficulty reaching orgasm</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.painDuringIntercourse}
+                          onChange={(e) => updateFormData('painDuringIntercourse', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I experience pain during intercourse</span>
+                      </label>
+                    </div>
+                  </>
+                )}
                 
+                {/* Shared questions for all genders */}
                 <div>
                   <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
                     <input
@@ -756,41 +823,44 @@ export default function Assessment() {
                   If you don't know your current blood pressure, please measure it before continuing or enter your most recent reading.
                 </p>
                 
-                <div className="border-t pt-6">
-                  <p className="font-medium text-gray-700 mb-4">For individuals who may become pregnant:</p>
-                  
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
-                        checked={formData.isPregnant}
-                        onChange={(e) => updateFormData('isPregnant', e.target.checked)}
-                      />
-                      <span className="text-gray-700">I am currently pregnant</span>
-                    </label>
+                {/* Only show pregnancy questions for females */}
+                {formData.gender === 'female' && (
+                  <div className="border-t pt-6">
+                    <p className="font-medium text-gray-700 mb-4">Pregnancy & Reproductive Health:</p>
                     
-                    <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
-                        checked={formData.isBreastfeeding}
-                        onChange={(e) => updateFormData('isBreastfeeding', e.target.checked)}
-                      />
-                      <span className="text-gray-700">I am currently breastfeeding</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
-                        checked={formData.tryingToConceive}
-                        onChange={(e) => updateFormData('tryingToConceive', e.target.checked)}
-                      />
-                      <span className="text-gray-700">I am trying to conceive</span>
-                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.isPregnant}
+                          onChange={(e) => updateFormData('isPregnant', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I am currently pregnant</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.isBreastfeeding}
+                          onChange={(e) => updateFormData('isBreastfeeding', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I am currently breastfeeding</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                          checked={formData.tryingToConceive}
+                          onChange={(e) => updateFormData('tryingToConceive', e.target.checked)}
+                        />
+                        <span className="text-gray-700">I am trying to conceive</span>
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -879,15 +949,18 @@ export default function Assessment() {
                   <span className="text-gray-700">I have a known allergy to oxytocin</span>
                 </label>
                 
-                <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
-                    checked={formData.uterineConditions}
-                    onChange={(e) => updateFormData('uterineConditions', e.target.checked)}
-                  />
-                  <span className="text-gray-700">I have uterine conditions or have had uterine surgery</span>
-                </label>
+                {/* Only show uterine conditions for females */}
+                {formData.gender === 'female' && (
+                  <label className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                      checked={formData.uterineConditions}
+                      onChange={(e) => updateFormData('uterineConditions', e.target.checked)}
+                    />
+                    <span className="text-gray-700">I have uterine conditions or have had uterine surgery</span>
+                  </label>
+                )}
                 
                 <div className="mt-6">
                   <label className="form-label">Any other conditions relevant to Oxytocin?</label>

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function PhysicianLogin() {
   const router = useRouter();
@@ -49,11 +50,11 @@ export default function PhysicianLogin() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-display text-white">
+          <Link href="/" className="text-3xl font-display text-white hover:opacity-80 transition-opacity inline-block">
             <span>Duo</span>
             <span className="text-primary-400">Desire</span>
             <span className="text-primary-400 text-sm">™</span>
-          </h1>
+          </Link>
           <p className="text-gray-400 mt-2">Physician Portal</p>
         </div>
 
