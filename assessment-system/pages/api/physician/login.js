@@ -6,6 +6,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if DATABASE_URL is configured
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL environment variable is not set');
+    return res.status(500).json({ error: 'Server configuration error: DATABASE_URL not set' });
+  }
+
   try {
     const { email, password } = req.body;
 
@@ -64,8 +70,12 @@ export default async function handler(req, res) {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Login failed' });
+    console.error('Login error:', error.message);
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: 'Login failed', 
+      details: process.env.NODE_ENV !== 'production' ? error.message : undefined 
+    });
   }
 }
 
