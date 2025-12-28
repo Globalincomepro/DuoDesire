@@ -114,6 +114,14 @@ export default function PhysicianDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            <Link href="/physician/earnings" className="text-sm text-gray-600 hover:text-gray-900">
+              My Earnings
+            </Link>
+            {physician.role === 'admin' && (
+              <Link href="/admin" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                Admin Dashboard
+              </Link>
+            )}
             <div className="text-right">
               <p className="font-medium text-gray-900">{physician.name}</p>
               <p className="text-sm text-gray-500">{physician.role}</p>

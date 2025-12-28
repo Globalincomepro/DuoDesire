@@ -34,6 +34,12 @@ async function handler(req, res) {
       return res.status(400).json({ error: `Assessment has already been ${assessment.status}` });
     }
 
+    // Get physician's fee per review
+    const physician = await prisma.physician.findUnique({
+      where: { id: req.physician.id },
+      select: { feePerReview: true },
+    });
+
     // Update assessment
     const updated = await prisma.patientAssessment.update({
       where: { id: assessmentId },
@@ -46,6 +52,74 @@ async function handler(req, res) {
       },
     });
 
+    // Create payment record if physician has a fee configured
+    let paymentRecord = null;
+    if (physician && physician.feePerReview > 0) {
+      // Find or create current payout cycle
+      const now = new Date();
+      const settings = await prisma.systemSettings.findUnique({ where: { id: 'system' } });
+      const cycleType = settings?.payoutCycleType || 'weekly';
+      
+      // Calculate cycle start/end dates
+      let cycleStart, cycleEnd;
+      if (cycleType === 'weekly') {
+        // Start of current week (Sunday)
+        cycleStart = new Date(now);
+        cycleStart.setDate(now.getDate() - now.getDay());
+        cycleStart.setHours(0, 0, 0, 0);
+        // End of current week (Saturday)
+        cycleEnd = new Date(cycleStart);
+        cycleEnd.setDate(cycleStart.getDate() + 6);
+        cycleEnd.setHours(23, 59, 59, 999);
+      } else {
+        // Start of current month
+        cycleStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        // End of current month
+        cycleEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
+
+      // Find or create payout cycle
+      let cycle = await prisma.payoutCycle.findFirst({
+        where: {
+          physicianId: req.physician.id,
+          startDate: cycleStart,
+          endDate: cycleEnd,
+        },
+      });
+
+      if (!cycle) {
+        cycle = await prisma.payoutCycle.create({
+          data: {
+            physicianId: req.physician.id,
+            startDate: cycleStart,
+            endDate: cycleEnd,
+            cycleType,
+            status: 'open',
+          },
+        });
+      }
+
+      // Create payment record
+      paymentRecord = await prisma.reviewPayment.create({
+        data: {
+          assessmentId: assessmentId,
+          physicianId: req.physician.id,
+          amount: physician.feePerReview,
+          decision: decision,
+          cycleId: cycle.id,
+        },
+      });
+
+      // Update cycle totals
+      await prisma.payoutCycle.update({
+        where: { id: cycle.id },
+        data: {
+          totalReviews: { increment: 1 },
+          totalAmount: { increment: physician.feePerReview },
+        },
+      });
+    }
+
     // Log the decision
     await prisma.auditLog.create({
       data: {
@@ -55,6 +129,7 @@ async function handler(req, res) {
         details: JSON.stringify({
           notes,
           denialReason: decision === 'denied' ? denialReason : null,
+          paymentAmount: paymentRecord?.amount || 0,
         }),
         physicianId: req.physician.id,
         ipAddress: req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress,
@@ -69,6 +144,10 @@ async function handler(req, res) {
         status: updated.status,
         decisionTimestamp: updated.decisionTimestamp,
       },
+      payment: paymentRecord ? {
+        amount: paymentRecord.amount,
+        cycleId: paymentRecord.cycleId,
+      } : null,
     });
   } catch (error) {
     console.error('Decision error:', error);

@@ -32,6 +32,17 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Account is disabled' });
     }
 
+    // Check if physician is approved (skip check for admins)
+    if (physician.role !== 'admin' && physician.status !== 'approved') {
+      if (physician.status === 'pending') {
+        return res.status(401).json({ error: 'Your account is pending admin approval' });
+      }
+      if (physician.status === 'denied') {
+        return res.status(401).json({ error: 'Your registration was not approved' });
+      }
+      return res.status(401).json({ error: 'Account not approved' });
+    }
+
     // Verify password
     const isValid = await comparePassword(password, physician.passwordHash);
 

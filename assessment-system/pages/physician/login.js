@@ -102,7 +102,13 @@ export default function PhysicianLogin() {
           </form>
 
           <div className="mt-6 pt-6 border-t text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600 mb-2">
+              New physician?{' '}
+              <Link href="/physician/register" className="text-primary-500 hover:text-primary-600 font-medium">
+                Register here
+              </Link>
+            </p>
+            <p className="text-xs text-gray-400">
               Authorized medical personnel only
             </p>
           </div>

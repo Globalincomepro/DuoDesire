@@ -62,6 +62,9 @@ model PatientAssessment {
   shippedAt         DateTime?
   trackingNumber    String?
   
+  // Payment tracking
+  reviewPayment     ReviewPayment?
+  
   @@index([status])
   @@index([createdAt])
 }
@@ -77,11 +80,24 @@ model Physician {
   role         String   @default("physician") // physician, admin
   isActive     Boolean  @default(true)
   
+  // Registration & Approval
+  status         String   @default("pending") // pending, approved, denied
+  licenseNumber  String?
+  approvedAt     DateTime?
+  approvedById   String?
+  approvedBy     Physician? @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedDoctors Physician[] @relation("ApprovedBy")
+  
+  // Payment Settings
+  feePerReview   Float    @default(0) // Amount earned per review
+  
   // Audit
   lastLoginAt  DateTime?
   
   assessments  PatientAssessment[]
   auditLogs    AuditLog[]
+  reviewPayments ReviewPayment[]
+  payoutCycles   PayoutCycle[]
 }
 
 model AuditLog {
@@ -99,5 +115,73 @@ model AuditLog {
   
   @@index([physicianId])
   @@index([createdAt])
+}
+
+// Payment tracking for physician reviews
+model ReviewPayment {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  
+  // Link to assessment
+  assessmentId  String   @unique
+  assessment    PatientAssessment @relation(fields: [assessmentId], references: [id])
+  
+  // Link to physician who did the review
+  physicianId   String
+  physician     Physician @relation(fields: [physicianId], references: [id])
+  
+  // Payment details
+  amount        Float    // Amount earned for this review
+  decision      String   // approved, denied
+  
+  // Payout cycle tracking
+  cycleId       String?
+  cycle         PayoutCycle? @relation(fields: [cycleId], references: [id])
+  isPaid        Boolean  @default(false)
+  paidAt        DateTime?
+  
+  @@index([physicianId])
+  @@index([cycleId])
+  @@index([createdAt])
+}
+
+// Weekly/Monthly payout cycles
+model PayoutCycle {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  
+  // Cycle period
+  startDate     DateTime
+  endDate       DateTime
+  cycleType     String   // weekly, monthly
+  
+  // Physician this cycle belongs to
+  physicianId   String
+  physician     Physician @relation(fields: [physicianId], references: [id])
+  
+  // Totals
+  totalReviews  Int      @default(0)
+  totalAmount   Float    @default(0)
+  
+  // Status
+  status        String   @default("open") // open, closed, paid
+  paidAt        DateTime?
+  paidBy        String?  // Admin who marked as paid
+  paymentNotes  String?
+  
+  payments      ReviewPayment[]
+  
+  @@index([physicianId])
+  @@index([status])
+  @@index([startDate])
+}
+
+// System-wide settings
+model SystemSettings {
+  id                  String   @id @default("system")
+  updatedAt           DateTime @updatedAt
+  
+  defaultFeePerReview Float    @default(5.00)
+  payoutCycleType     String   @default("weekly") // weekly, monthly
 }
 
